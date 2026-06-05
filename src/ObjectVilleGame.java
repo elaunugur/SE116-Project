@@ -444,6 +444,7 @@ class Empty extends Building {
 
 }
 
+
 class Road extends Building implements Connectable {
 
     public Road(int row, int col) {
