@@ -564,11 +564,283 @@ class Hospital extends Building implements ServiceProvider {
         }
     }
 }
-class House extends Building implements Connectable, Upgrade, ResourceProducer {}
+class House extends Building implements Connectable, Upgrade, ResourceProducer {
 
-class Industrial extends Building implements Connectable, Upgrade, ResourceProducer {}
+    private int currentLifestyle;
 
-class Commercial extends Building implements Connectable, Upgrade, ResourceProducer {}
+    public House(int row, int col) {
+        super(row, col, 'H', "House");
+        this.currentLifestyle = 0;
+    }
+
+    @Override
+    public boolean canConnect() { return true; }
+
+    @Override
+    public void resetForNewTick() {
+        super.resetForNewTick();
+        currentLifestyle = 0;
+    }
+
+    public void setCurrentLifestyle(int amount) {
+        this.currentLifestyle = amount;
+    }
+
+    @Override
+    public void updateBuilding(City city) {
+
+        int oldLevel = buildingLevel;
+
+        boolean hasElectricity = electricity > 0;
+        boolean hasWater       = water       > 0;
+        boolean hasInternet    = internet    > 0;
+
+        if (!hasElectricity || !hasWater || !hasInternet) {
+            buildingLevel = 0;
+            output        = 0;
+            demand        = 1;
+            System.out.println("House at (" + row + "," + col + ") generated 0 population");
+            if (oldLevel > 0) {
+                System.out.println("House at (" + row + "," + col + ") levels down from " + oldLevel + " to 0");
+            }
+            return;
+        }
+
+        int targetLevel = 1;
+        if (isSecurity && isHealth && isEducation) {
+            targetLevel = 2;
+            if (currentLifestyle > 0) {
+                targetLevel = 3;
+            }
+        }
+
+        if (targetLevel > buildingLevel) {
+            buildingLevel = buildingLevel + 1;
+        } else if (targetLevel < buildingLevel) {
+            buildingLevel = buildingLevel - 1;
+        }
+
+        int min = electricity;
+        if (water    < min) min = water;
+        if (internet < min) min = internet;
+
+        if (buildingLevel == 0) {
+            output = 0;
+        } else if (buildingLevel == 1) {
+            output = min;
+        } else if (buildingLevel == 2) {
+            output = 2 * min;
+        } else if (buildingLevel == 3) {
+            output = 2 * min + currentLifestyle;
+        }
+
+        if (output > 1) {
+            demand = output;
+        } else {
+            demand = 1;
+        }
+
+        System.out.println("House at (" + row + "," + col + ") generated " + output + " population");
+
+        if (buildingLevel > oldLevel) {
+            System.out.println("House at (" + row + "," + col + ") levels up from " + oldLevel + " to " + buildingLevel);
+        } else if (buildingLevel < oldLevel) {
+            System.out.println("House at (" + row + "," + col + ") levels down from " + oldLevel + " to " + buildingLevel);
+        }
+    }
+
+    @Override
+    public void calculateProduction(City city) {
+        city.addToPopulationStorage(output);
+    }
+}
+
+class Industrial extends Building implements Connectable, Upgrade, ResourceProducer {
+
+    private int currentPopulation;
+
+    public Industrial(int row, int col) {
+        super(row, col, 'I', "Industrial");
+        this.currentPopulation = 0;
+    }
+
+    @Override
+    public boolean canConnect() { return true; }
+
+    @Override
+    public void resetForNewTick() {
+        super.resetForNewTick();
+        currentPopulation = 0;
+    }
+
+    public void setCurrentPopulation(int amount) {
+        this.currentPopulation = amount;
+    }
+
+    @Override
+    public void updateBuilding(City city) {
+
+        int oldLevel = buildingLevel;
+
+        boolean hasElectricity = electricity > 0;
+        boolean hasWater       = water       > 0;
+
+        if (!hasElectricity || !hasWater) {
+            buildingLevel = 0;
+            output        = 0;
+            demand        = 1;
+            System.out.println("Industrial at (" + row + "," + col + ") generated 0 goods");
+            if (oldLevel > 0) {
+                System.out.println("Industrial at (" + row + "," + col + ") levels down from " + oldLevel + " to 0");
+            }
+            return;
+        }
+
+        int targetLevel = 1;
+        if (isSecurity) {
+            targetLevel = 2;
+            if (currentPopulation > 0) {
+                targetLevel = 3;
+            }
+        }
+
+        if (targetLevel > buildingLevel) {
+            buildingLevel = buildingLevel + 1;
+        } else if (targetLevel < buildingLevel) {
+            buildingLevel = buildingLevel - 1;
+        }
+
+        int min = electricity;
+        if (water < min) min = water;
+
+        if (buildingLevel == 0) {
+            output = 0;
+        } else if (buildingLevel == 1) {
+            output = min;
+        } else if (buildingLevel == 2) {
+            output = 2 * min;
+        } else if (buildingLevel == 3) {
+            output = 2 * min + currentPopulation;
+        }
+
+        if (output > 1) {
+            demand = output;
+        } else {
+            demand = 1;
+        }
+
+        System.out.println("Industrial at (" + row + "," + col + ") generated " + output + " goods");
+
+        if (buildingLevel > oldLevel) {
+            System.out.println("Industrial at (" + row + "," + col + ") levels up from " + oldLevel + " to " + buildingLevel);
+        } else if (buildingLevel < oldLevel) {
+            System.out.println("Industrial at (" + row + "," + col + ") levels down from " + oldLevel + " to " + buildingLevel);
+        }
+    }
+
+    @Override
+    public void calculateProduction(City city) {
+        city.addToGoodsStorage(output);
+    }
+}
+
+
+class Commercial extends Building implements Connectable, Upgrade, ResourceProducer {
+
+    private int currentPopulation;
+    private int currentGoods;
+
+    public Commercial(int row, int col) {
+        super(row, col, 'C', "Commercial");
+        this.currentPopulation = 0;
+        this.currentGoods = 0;
+    }
+
+    @Override
+    public boolean canConnect() { return true; }
+
+    @Override
+    public void resetForNewTick() {
+        super.resetForNewTick();
+        currentPopulation = 0;
+        currentGoods = 0;
+    }
+
+    public void setCurrentPopulation(int amount) { this.currentPopulation = amount; }
+    public void setCurrentGoods(int amount)      { this.currentGoods = amount; }
+
+
+    @Override
+    public void updateBuilding(City city) {
+
+        int oldLevel = buildingLevel;
+
+        boolean hasElectricity = electricity > 0;
+        boolean hasWater       = water       > 0;
+        boolean hasInternet    = internet    > 0;
+
+        if (!hasElectricity || !hasWater || !hasInternet) {
+            buildingLevel = 0;
+            output        = 0;
+            demand        = 1;
+            System.out.println("Commercial at (" + row + "," + col + ") generated 0 lifestyle");
+            if (oldLevel > 0) {
+                System.out.println("Commercial at (" + row + "," + col + ") levels down from " + oldLevel + " to 0");
+            }
+            return;
+        }
+
+        int targetLevel = 1;
+        if (isSecurity) {
+            targetLevel = 2;
+            if (currentPopulation > 0 && currentGoods > 0) {
+                targetLevel = 3;
+            }
+        }
+
+        if (targetLevel > buildingLevel) {
+            buildingLevel = buildingLevel + 1;
+        } else if (targetLevel < buildingLevel) {
+            buildingLevel = buildingLevel - 1;
+        }
+
+        int min = electricity;
+        if (water    < min) min = water;
+        if (internet < min) min = internet;
+
+        int min2 = currentPopulation;
+        if (currentGoods < min2) min2 = currentGoods;
+
+        if (buildingLevel == 0) {
+            output = 0;
+        } else if (buildingLevel == 1) {
+            output = min;
+        } else if (buildingLevel == 2) {
+            output = 2 * min;
+        } else if (buildingLevel == 3) {
+            output = 2 * min + min2;
+        }
+
+        if (output > 1) {
+            demand = output;
+        } else {
+            demand = 1;
+        }
+
+        System.out.println("Commercial at (" + row + "," + col + ") generated " + output + " lifestyle");
+
+        if (buildingLevel > oldLevel) {
+            System.out.println("Commercial at (" + row + "," + col + ") levels up from " + oldLevel + " to " + buildingLevel);
+        } else if (buildingLevel < oldLevel) {
+            System.out.println("Commercial at (" + row + "," + col + ") levels down from " + oldLevel + " to " + buildingLevel);
+        }
+    }
+
+    @Override
+    public void calculateProduction(City city) {
+        city.addToLifestyleStorage(output);
+    }
+}
 
 class PowerPlant extends Building implements UtilityProvider {}
 
