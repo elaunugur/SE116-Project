@@ -416,14 +416,154 @@ class MapLoader {
         }
     }
 }
-abstract class Building{}
+abstract class Building {
 
-class School extends Building implements ServiceProvider {}
+    protected final int row;
+    protected final int col;
 
-class PoliceStation extends Building implements ServiceProvider {}
+    protected char theSymbolInMap;
+    protected String buildingName;
+    protected int    buildingLevel;
 
-class Hospital extends Building implements ServiceProvider {}
+    protected boolean isEducation;
+    protected boolean isSecurity;
+    protected boolean isHealth;
 
+    protected int internet;
+    protected int water;
+    protected int electricity;
+
+
+    protected int output = 0;
+    protected int demand = 1;
+
+    Building(int row, int col, char theSymbolInMap, String buildingName) {
+        this.row           = row;
+        this.col           = col;
+        this.theSymbolInMap = theSymbolInMap;
+        this.buildingName  = buildingName;
+        this.buildingLevel = 0;
+        this.isEducation   = false;
+        this.isSecurity    = false;
+        this.isHealth      = false;
+        this.internet      = 0;
+        this.water         = 0;
+        this.electricity   = 0;
+    }
+
+    public void resetForNewTick() {
+        isEducation = false;
+        isSecurity  = false;
+        isHealth    = false;
+        electricity = 0;
+        water       = 0;
+        internet    = 0;
+    }
+
+
+    public void calculateReceivedWater(int amount) {
+        this.water = water + amount;
+    }
+    public void calculateReceivedElectricity(int amount) {
+        this.electricity = electricity + amount;
+    }
+    public void calculateReceivedInternet(int amount) {
+        this.internet = internet + amount;
+    }
+
+
+    public int getElectricity() {
+        return this.electricity;
+    }
+
+    public int getWater() {
+        return this.water;
+    }
+
+    public int getInternet() {
+        return this.internet;
+    }
+}
+class School extends Building implements ServiceProvider {
+
+    public static final int radius = 4;
+
+    public School(int row, int col) {
+        super(row, col, 'S', "School");
+    }
+
+    @Override
+    public void applyServices(City city) {
+        for (int r = row - radius; r <= row + radius; r++) {
+            for (int c = col - radius; c <= col + radius; c++) {
+                double distance = Math.sqrt(Math.pow(r - row, 2) + Math.pow(c - col, 2));
+                if (distance <= radius) {
+                    Building building = city.buildingInThatCoordinate(r, c);
+                    if (building instanceof House) {
+                        building.isEducation = true;
+                        System.out.println("House at (" + r + "," + c + ") received education service");
+                    }
+                }
+            }
+        }
+    }
+}
+
+class PoliceStation extends Building implements ServiceProvider {
+
+    public static final int radius = 5;
+
+    public PoliceStation(int row, int col) {
+        super(row, col, 'F', "Police Station");
+    }
+
+    @Override
+    public void applyServices(City city) {
+        for (int r = row - radius; r <= row + radius; r++) {
+            for (int c = col - radius; c <= col + radius; c++) {
+                double distance = Math.sqrt(Math.pow(r - row, 2) + Math.pow(c - col, 2));
+                if (distance <= radius) {
+                    Building building = city.buildingInThatCoordinate(r, c);
+                    if (building instanceof House) {
+                        building.isSecurity = true;
+                        System.out.println("House at (" + r + "," + c + ") received security service");
+                    } else if (building instanceof Industrial) {
+                        building.isSecurity = true;
+                        System.out.println("Industrial at (" + r + "," + c + ") received security service");
+                    } else if (building instanceof Commercial) {
+                        building.isSecurity = true;
+                        System.out.println("Commercial at (" + r + "," + c + ") received security service");
+                    }
+                }
+            }
+        }
+    }
+}
+
+class Hospital extends Building implements ServiceProvider {
+
+    public static final int radius = 3;
+
+    public Hospital(int row, int col) {
+        super(row, col, 'D', "Hospital");
+    }
+
+    @Override
+    public void applyServices(City city) {
+        for (int r = row - radius; r <= row + radius; r++) {
+            for (int c = col - radius; c <= col + radius; c++) {
+                double distance = Math.sqrt(Math.pow(r - row, 2) + Math.pow(c - col, 2));
+                if (distance <= radius) {
+                    Building building = city.buildingInThatCoordinate(r, c);
+                    if (building instanceof House) {
+                        building.isHealth = true;
+                        System.out.println("House at (" + r + "," + c + ") received health service");
+                    }
+                }
+            }
+        }
+    }
+}
 class House extends Building implements Connectable, Upgrade, ResourceProducer {}
 
 class Industrial extends Building implements Connectable, Upgrade, ResourceProducer {}
