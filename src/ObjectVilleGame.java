@@ -441,7 +441,6 @@ class Empty extends Building {
     public Empty(int row, int col) {
         super(row, col, 'E', "Empty");
     }
-
 }
 
 class Road extends Building implements Connectable {
