@@ -2,6 +2,31 @@ import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+interface UtilityProvider {
+    void distributeUtilities(City city);
+}
+
+
+interface ServiceProvider {
+    void applyServices(City city);
+}
+
+
+interface Upgrade {
+    void updateBuilding(City city);
+}
+
+
+interface ResourceProducer {
+    void calculateProduction(City city);
+}
+
+interface Connectable {
+    boolean canConnect();
+}
+interface BuildingAction {
+    void apply(Building b);
+}
 
 public class ObjectVilleGame {
     public static void main(String[] args) {
@@ -841,12 +866,48 @@ class Commercial extends Building implements Connectable, Upgrade, ResourceProdu
         city.addToLifestyleStorage(output);
     }
 }
+class PowerPlant extends Building implements UtilityProvider {
 
-class PowerPlant extends Building implements UtilityProvider {}
+    public static final int capacity = 100;
 
-class WaterPlant extends Building implements UtilityProvider {}
+    public PowerPlant(int row, int col) {
+        super(row, col, 'P', "Power Plant");
+    }
 
-class InternetProvider extends Building implements UtilityProvider {}
+    @Override
+    public void distributeUtilities(City city) {
+        city.deliverBFS(row, col, "electricity", capacity);
+    }
+}
+
+class WaterPlant extends Building implements UtilityProvider {
+
+    public static final int capacity = 100;
+
+    public WaterPlant(int row, int col) {
+        super(row, col, 'W', "Water Plant");
+    }
+
+    @Override
+    public void distributeUtilities(City city) {
+        city.deliverBFS(row, col, "water", capacity);
+    }
+}
+
+class InternetProvider extends Building implements UtilityProvider {
+
+    public static final int capacity = 100;
+
+    public InternetProvider(int row, int col) {
+        super(row, col, 'T', "Internet Provider");
+    }
+
+    @Override
+    public void distributeUtilities(City city) {
+        city.deliverBFS(row, col, "internet", capacity);
+    }
+}
+
 
 class Empty extends Building {
 
